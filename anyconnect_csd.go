@@ -333,6 +333,13 @@ func (a *anyConnectAuthentication) pollAnyConnectHostScanWait(ctx context.Contex
 			return anyConnectHTTPStatusError(response.statusCode, "CSD wait request returned HTTP ")
 		}
 		trimmedBody := bytes.TrimSpace(response.body)
+		if len(trimmedBody) == 0 {
+			// Upstream openconnect treats an empty wait response as scan
+			// completion (auth.c: result <= 0 -> break, then the auth form
+			// is re-requested). Some ASAs answer 200 with an empty body
+			// once the CSD report was accepted via scan.xml.
+			return nil
+		}
 		if bytes.HasPrefix(trimmedBody, []byte("<?xml")) {
 			return nil
 		}
