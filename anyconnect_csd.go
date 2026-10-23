@@ -161,7 +161,14 @@ func (a *anyConnectAuthentication) runHostScan(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	a.hostScan = anyConnectHostScan{}
+	// Keep the token: authentication replies must keep echoing
+	// <host-scan-token> after the scan completes, like upstream openconnect.
+	// Dropping it makes the gateway reject the session with error 13
+	// "Cisco Secure Desktop not installed on the client".
+	a.hostScan.Ticket = ""
+	a.hostScan.BaseURL = ""
+	a.hostScan.WaitURL = ""
+	a.hostScan.StubURL = ""
 	a.hostScanCompleted = true
 	return nil
 }
